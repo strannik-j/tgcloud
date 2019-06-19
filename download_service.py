@@ -12,11 +12,13 @@ from telethon.tl.types import DocumentAttributeFilename
 from telethon.tl.types import Document
 from telethon.utils import get_input_media
 from telethon.errors.rpc_error_list import LocationInvalidError
+from telethon.errors import SessionPasswordNeededError
 # from telegram_client_x import TelegramClientX
 from telethon.telegram_client import TelegramClient
 from telethon.tl.types import Message
 from tg_access import *
 from io import BytesIO
+from getpass import getpass
 import sys
 
 
@@ -68,7 +70,13 @@ client.connect()
 if not client.is_user_authorized():
     phone = input('Enter phone: ')
     client.send_code_request(phone)
-    client.sign_in(phone, input('Enter code: '))
+    try:
+        client.sign_in(phone, input('Enter code: '))
+    except SessionPasswordNeededError:
+        pw = getpass('Two step verification is enabled. '
+                     'Please enter your password: ')
+        client.sign_in(password=pw)
+
 def on_download_progress(recv_bytes, total_bytes):
     global last_call_time_receive
     if time.time() - last_call_time_receive < 1:
